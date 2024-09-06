@@ -10,7 +10,7 @@ Install Dependencies:
 
     npm install  
 
-Usage:
+Run this commands in CLI::
 
      expense-tracker list
      expense-tracker list -c <category>
