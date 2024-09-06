@@ -200,7 +200,7 @@ program
 program
   .command("delete")
   .description("Adds expense description and amount")
-  .option("--id <id>", "Id to delete")
+  .option("-i, --id <id>", "Id to delete")
   .action(deleteExpense);
 
 program.parse(process.argv);
