@@ -1,0 +1,25 @@
+{
+  "name": "expense-tracker",
+  "version": "1.0.0",
+  "description": "Program for managing your finances",
+  "main": "./bin/index.js",
+  "bin": {
+    "expense-tracker": "./bin/index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mark0-22/Expense-Tracker.git"
+  },
+  "author": "Marko Jovicic",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Mark0-22/Expense-Tracker/issues"
+  },
+  "homepage": "https://github.com/Mark0-22/Expense-Tracker#readme",
+  "dependencies": {
+    "commander": "^12.1.0"
+  }
+}
