@@ -5,7 +5,6 @@ const { program } = require("commander");
 
 const file = require("../util/file");
 const allMonths = require("../util/months");
-const budget = require("../util/budget");
 
 async function add() {
   const options = this.opts(); // Extracts flags arguments from CLI
