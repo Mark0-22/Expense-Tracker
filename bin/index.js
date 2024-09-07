@@ -23,10 +23,17 @@ async function add() {
     console.log("Category is required.");
     process.exit(1);
   }
+  if (!fs.existsSync("./budget.txt")) {
+    console.log("Budget.txt doesn't exists!");
+    console.log(
+      "Please set budget so you can add expense! (<expense-tracker set-budget <amount>>)"
+    );
+    process.exit(1);
+  }
 
   // Checks if expenses.json file exist
   if (fs.existsSync("./expenses.json")) {
-    const obj = await file.read();
+    const obj = await file.readJSON();
 
     let newId = 1;
     const allIds = obj.expenses.map((expense) => expense.id); // Stores all IDs of expenses in "allIds" array
@@ -46,8 +53,20 @@ async function add() {
 
     obj.expenses.push(expense);
     obj.expenses.sort((a, b) => a.id - b.id); // Sorts from lowest ID to highest
-    await file.write(obj);
-    budget(obj);
+
+    let budget = await file.readTXT();
+    const currentBudget = budget;
+    budget -= expense.amount;
+
+    if (budget < 0) {
+      console.log("WARNING! User exceeded the budget!");
+      console.log("Expense not added!");
+      console.log(`Current budget: $${currentBudget}`);
+      process.exit(1);
+    }
+
+    await file.writeTXT(budget.toString());
+    await file.writeJSON(obj);
     console.log(`Expense added successfully (ID: ${newId})`);
   }
   // Creates file and add first expense
@@ -61,14 +80,27 @@ async function add() {
     };
 
     const obj = { expenses: [expense] };
-    await file.write(obj);
+
+    let budget = await file.readTXT();
+    const currentBudget = budget;
+    budget -= expense.amount;
+
+    if (budget < 0) {
+      console.log("WARNING! User exceeded the budget!");
+      console.log("Expense not added!");
+      console.log(`Current budget: $${currentBudget}`);
+      process.exit(1);
+    }
+
+    await file.writeTXT(budget.toString());
+    await file.writeJSON(obj);
     console.log(`Expense added successfully (ID: 1)`);
   }
 }
 
 async function expensesList() {
   if (fs.existsSync("./expenses.json")) {
-    const json = await file.read();
+    const json = await file.readJSON();
     const { category } = this.opts();
 
     if (json.expenses.length === 0) {
@@ -100,7 +132,7 @@ async function expensesList() {
 async function deleteExpense() {
   const { id } = this.opts(); // Extracts flags arguments from CLI
   if (fs.existsSync("./expenses.json")) {
-    const json = await file.read();
+    const json = await file.readJSON();
 
     if (json.expenses.length === 0) {
       console.log("There are no expenses");
@@ -119,7 +151,7 @@ async function deleteExpense() {
 
     const expense = { expenses: newExpenses };
 
-    await file.write(expense);
+    await file.writeJSON(expense);
     console.log("Expense deleted successfully");
   } else {
     console.log("Expenses.json file doesn't exists!");
@@ -128,7 +160,7 @@ async function deleteExpense() {
 
 async function summaryExpenses() {
   if (fs.existsSync("./expenses.json")) {
-    const json = await file.read();
+    const json = await file.readJSON();
     const { month } = this.opts(); //Extracts flags arguments from CLI
 
     if (json.expenses.length === 0) {
@@ -175,6 +207,25 @@ async function summaryExpenses() {
   }
 }
 
+async function setBudget() {
+  let userBudget = process.argv[3];
+  await file.writeTXT(userBudget);
+  console.log(`Budget is set to $${userBudget}`);
+}
+
+async function toCSV() {
+  if (fs.existsSync("./expenses.json")) {
+    const json = await file.readJSON();
+    const expenses = json.expenses;
+    const csv = await file.JSONToCSV(expenses);
+
+    fs.writeFileSync("./csvExpenses.csv", csv, "utf8");
+    console.log("Successfully converted to CSV file");
+  } else {
+    console.log("Expenses.json file doesn't exists!");
+  }
+}
+
 // CLI Logic and Input //
 
 program
@@ -202,5 +253,10 @@ program
   .description("Adds expense description and amount")
   .option("-i, --id <id>", "Id to delete")
   .action(deleteExpense);
+program
+  .command("set-budget <budget>")
+  .description("Sets budget for user")
+  .action(setBudget);
+program.command("csv").description("export expenses to CSV file").action(toCSV);
 
 program.parse(process.argv);
